@@ -3,6 +3,7 @@ https://steamcommunity.com/sharedfiles/filedetails/?id=1868560353
 
 This github upload contains a feature that is not currently live on steamworkshop.
 I replaced the "Decay" of the shadows by hunger. So the shadows will starve if not feeded nightmarefuel.
+WARNING: This version is not stable/working like intended, it needs some more work!
 
 One problem is, that the action feeding and putting sth into the shadows container dont work together. I would need to change alot of stuff to make them work together)
 So I decided to remove the ability to store nightmarefuel in their containers.
