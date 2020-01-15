@@ -658,7 +658,7 @@ configuration_options =
     {
         name = "shadow_savethetrees",
         label = "Lumber's spare trees without seeds?",
-        hover = "Spare Mushtree, Lumpy Evergreen, Spikey Tree or Barren Birchnut Tree?",
+        hover = "Spare Mushtree, Lumpy Evergreen, Spikey or Banana Tree or Barren Birchnut Tree?",
         options =
         {
             {description = "No", data = false, hover = "All of those trees will be chopped"},

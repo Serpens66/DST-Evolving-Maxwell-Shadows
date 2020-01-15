@@ -61,6 +61,7 @@ if SaveTheTrees then -- no trees that wont have any pinecones
     table.insert(_T.BM_AllowedAction.never[GLOBAL.ACTIONS.CHOP].prefabs,"mushtree")
     table.insert(_T.BM_AllowedAction.never[GLOBAL.ACTIONS.CHOP].prefabs,"evergreen_sparse")
     table.insert(_T.BM_AllowedAction.never[GLOBAL.ACTIONS.CHOP].prefabs,"marsh_tree")
+    table.insert(_T.BM_AllowedAction.never[GLOBAL.ACTIONS.CHOP].prefabs,"cave_banana_tree")
 end
 _T.MAXIMUM_SANITY_PENALTY = 0.905 -- instead of 0.9, to prevent rounding issues when reaching exaclty 10% (or 9.99999%).
 _T.SHADOWWAXWELL_SANITY_PENALTY =
@@ -193,31 +194,6 @@ end
 -- #### make shadows able to pick sth... add stategraphs from sgwilson ##########
 ------------------------------------------------------------------------
 modimport("scripts/stategraphadditions")
-
-AddPrefabPostInit("batbat", function(inst) -- fix the sanity crash if shadow is using a batbat
-    local old_onattack = inst.components.weapon.onattack
-    local function new_onattack(inst, owner, target,...)
-        if owner~=nil and owner.components~=nil and owner.prefab=="shadowduelist" then
-            local skin_fx = GLOBAL.SKIN_FX_PREFAB[inst:GetSkinName()]
-            if skin_fx ~= nil and skin_fx[1] ~= nil and target ~= nil and target.components.combat ~= nil and target:IsValid() then
-                local fx = GLOBAL.SpawnPrefab(skin_fx[1])
-                if fx ~= nil then
-                    fx.entity:SetParent(target.entity)
-                    fx.entity:AddFollower():FollowSymbol(target.GUID, target.components.combat.hiteffectsymbol, 0, 0, 0)
-                    if fx.OnBatFXSpawned ~= nil then
-                        fx:OnBatFXSpawned(inst)
-                    end
-                end
-            end
-            if owner.components.health ~= nil and owner.components.health:GetPercent() < 1 and not (target:HasTag("wall") or target:HasTag("engineering")) then
-                owner.components.health:DoDelta(_T.BATBAT_DRAIN, false, "batbat")  -- no sanity drain for shadows
-            end
-        elseif old_onattack~=nil then 
-            return old_onattack(inst, owner, target,...)
-        end
-    end
-    inst.components.weapon.onattack = new_onattack
-end)
 
 AddComponentPostInit("armor",function(self) -- execute this for server and client
     -- print("AddTag armor")
@@ -834,6 +810,33 @@ modimport("BM_strings")
 if not (GLOBAL.TheNet:GetIsServer() or GLOBAL.TheNet:IsDedicated()) then  -- what is the difference between checking GetIsSwerver or mastersim ? basically the same, but in modmain theworld is nil, so we have to use thenet
 	return
 end
+
+AddPrefabPostInit("batbat", function(inst) -- fix the sanity crash if shadow is using a batbat
+    if inst.components.weapon~=nil then
+        local old_onattack = inst.components.weapon.onattack
+        local function new_onattack(inst, owner, target,...)
+            if owner~=nil and owner.components~=nil and owner.prefab=="shadowduelist" then
+                local skin_fx = GLOBAL.SKIN_FX_PREFAB[inst:GetSkinName()]
+                if skin_fx ~= nil and skin_fx[1] ~= nil and target ~= nil and target.components.combat ~= nil and target:IsValid() then
+                    local fx = GLOBAL.SpawnPrefab(skin_fx[1])
+                    if fx ~= nil then
+                        fx.entity:SetParent(target.entity)
+                        fx.entity:AddFollower():FollowSymbol(target.GUID, target.components.combat.hiteffectsymbol, 0, 0, 0)
+                        if fx.OnBatFXSpawned ~= nil then
+                            fx:OnBatFXSpawned(inst)
+                        end
+                    end
+                end
+                if owner.components.health ~= nil and owner.components.health:GetPercent() < 1 and not (target:HasTag("wall") or target:HasTag("engineering")) then
+                    owner.components.health:DoDelta(_T.BATBAT_DRAIN, false, "batbat")  -- no sanity drain for shadows
+                end
+            elseif old_onattack~=nil then 
+                return old_onattack(inst, owner, target,...)
+            end
+        end
+        inst.components.weapon.onattack = new_onattack
+    end
+end)
 
 if _T.BM_UNLIMETED_DUR then
     AddComponentPostInit("finiteuses",function(self) -- unlimited weapons/tools
